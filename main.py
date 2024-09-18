@@ -1,5 +1,10 @@
 from fastapi import FastAPI
 
+# post, put, delete
+# authentication
+# database setup
+
+
 app = FastAPI()
 
 @app.get("/")
