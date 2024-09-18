@@ -1,0 +1,7 @@
+env/               # Ignore the virtual environment
+__pycache__/       # Ignore Python cache files
+*.pyc              # Ignore compiled Python files
+.DS_Store          # Ignore macOS system file (if on macOS)
+*.log              # Ignore log files
+
+touch .gitignore
