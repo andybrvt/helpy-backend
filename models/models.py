@@ -26,6 +26,9 @@ class User(Base):
     community = relationship("Community", back_populates="users")
 
     room = relationship("Room", back_populates="resident", uselist=False)  # One-to-one relationship
+    
+    # many to many relationship with notifications
+    notifications = relationship("Notification", secondary="notification_recipients", back_populates="recipients")
 
 
 
@@ -74,7 +77,8 @@ class Task(Base):
     alexa_device_id = Column(Integer, ForeignKey("alexa_devices.id"), nullable=True)
     alexa_device = relationship("AlexaDevice", back_populates="tasks_requested")
 
-    
+    notifications = relationship("Notification", back_populates="task")
+
     
 
 
@@ -154,6 +158,26 @@ class Room(Base):
     room_type = Column(String, nullable=True)  # Optional field to store room type (e.g., single, shared)
 
 
+class Notification(Base):
+    __tablename__ = "notifications"
+    # Primary Key
+    id = Column(Integer, primary_key=True, index=True)
+
+    # Message content for the notification
+    message = Column(String, nullable=False)
+
+    # Many-to-Many relationship with User (recipients of the notification)
+    recipients = relationship("User", secondary="notification_recipients", back_populates="notifications")
+    
+    # Foreign Key to Task (if this notification is related to a specific task)
+    task_id = Column(Integer, ForeignKey("tasks.id"), nullable=True)
+    task = relationship("Task", back_populates="notifications")
+
+    # Timestamp of when the notification was created
+    timestamp = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Status of the notification (e.g., sent, read, acknowledged)
+    status = Column(Enum('sent', 'read', 'acknowledged', name='notification_status'), default='sent')
 
 
 
@@ -165,5 +189,12 @@ task_assignments = Table(
     Column("task_id", ForeignKey("tasks.id"), primary_key=True)
 )
 
+# Many-to-Many association table between User and Notification
+notification_recipients = Table(
+    "notification_recipients",
+    Base.metadata,
+    Column("user_id", Integer, ForeignKey("users.id"), primary_key=True),
+    Column("notification_id", Integer, ForeignKey("notifications.id"), primary_key=True)
+)
 
 
