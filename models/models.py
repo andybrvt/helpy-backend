@@ -21,6 +21,13 @@ class User(Base):
     tasks = relationship("Task", secondary="task_assignments", back_populates="assigned_users")
     tasks_completed = relationship("Task", back_populates="completed_by")
 
+    # Task one to many with communities
+    community_id = Column(Integer, ForeignKey("communities.id"), nullable=True)  # Foreign key to Community
+    community = relationship("Community", back_populates="users")
+
+    room = relationship("Room", back_populates="resident", uselist=False)  # One-to-one relationship
+
+
 
 class Task(Base):
     __tablename__ = "tasks"
@@ -62,11 +69,93 @@ class Task(Base):
     #the foreign key will signify the one to many relationship
     community_id = Column(Integer, ForeignKey("communities.id"), nullable=False)
     community = relationship("Community", back_populates="tasks")
+
+    # Foreign Key to AlexaDevice table, one alexa can have many tasks
+    alexa_device_id = Column(Integer, ForeignKey("alexa_devices.id"), nullable=True)
+    alexa_device = relationship("AlexaDevice", back_populates="tasks_requested")
+
+    
     
 
 
 #set up the community model
-   
+class Community(Base):
+
+    __tablename__ = "communities"
+
+    # Primary Key
+    id = Column(Integer, primary_key=True, index=True)
+    # Community details
+    name = Column(String, nullable=False, index=True)  # Community name, required and indexed for fast search
+    address = Column(String, nullable=False)  # Community address
+    email = Column(String, nullable=True)  # Optional contact info (email, phone, etc.)
+    phone_number = Column(String, nullable=True)
+
+    # One-to-Many relationship with Task
+    tasks = relationship("Task", back_populates="community")
+    # One-to-Many relationship with User (if users belong to specific communities)
+    users = relationship("User", back_populates="community")
+
+    # one to many relationship with room
+    rooms = relationship("Room", back_populates="community")
+
+
+class AlexaDevice(Base):
+    __tablename__ = "alexa_devices"
+
+    # Primary Key
+    id = Column(Integer, primary_key=True, index=True)
+    # Unique identifier for the Alexa device (provided by the device)
+    device_id = Column(String, nullable=False, unique=True, index=True)  # Unique and indexed for fast lookup
+
+    # Foreign Key to Room table
+    # one to many relationship with room, a room can have multiple alexa's i guess
+    room_id = Column(Integer, ForeignKey("rooms.id"), nullable=False)
+    room = relationship("Room", back_populates="alexa_devices")
+    
+
+    # Status of the device (e.g., active, inactive, offline)
+    status = Column(String, nullable=False, default="active")  # Default status is 'active'
+
+    # Timestamp of the last synchronization with the system
+    last_synced = Column(DateTime(timezone=True), nullable=True)
+    
+    # Timestamp of the last request made by the device
+    last_request = Column(DateTime(timezone=True), nullable=True)
+
+    # Total number of requests made by this device
+    total_number_requested = Column(Integer, nullable=False, default=0)
+
+    # One-to-Many relationship with Task (tasks requested by this device)
+    tasks_requested = relationship("Task", back_populates="alexa_device")
+
+    
+class Room(Base):
+    __tablename__ = "rooms"
+     # Primary Key
+    id = Column(Integer, primary_key=True, index=True)
+    
+    # Room number or name
+    room_number = Column(String, nullable=False, index=True, unique=True)
+    
+    # Foreign Key to Community table
+    community_id = Column(Integer, ForeignKey("communities.id"), nullable=False)
+    community = relationship("Community", back_populates="rooms")
+
+    # Optional Foreign Key to Resident User Profile (if a specific resident is linked to the room) 
+    resident_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    resident = relationship("User", back_populates="room", foreign_keys=[resident_id])
+    
+    # One-to-Many relationship with AlexaDevice
+    alexa_devices = relationship("AlexaDevice", back_populates="room")
+    
+    # Optional fields for room properties
+    floor_number = Column(Integer, nullable=True)  # Optional field to store the floor number
+    room_type = Column(String, nullable=True)  # Optional field to store room type (e.g., single, shared)
+
+
+
+
 
 # Task Assignment (Many-to-Many relationship table)
 task_assignments = Table(
