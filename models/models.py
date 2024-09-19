@@ -19,6 +19,7 @@ class User(Base):
 
     # Relationship with Task (Many-to-Many)
     tasks = relationship("Task", secondary="task_assignments", back_populates="assigned_users")
+
     tasks_completed = relationship("Task", back_populates="completed_by")
 
     # Task one to many with communities
@@ -30,6 +31,8 @@ class User(Base):
     # many to many relationship with notifications
     notifications = relationship("Notification", secondary="notification_recipients", back_populates="recipients")
 
+    caregiver_logs = relationship("CaregiverLog", foreign_keys="[CaregiverLog.caregiver_id]", back_populates="caregiver")
+    received_care_logs = relationship("CaregiverLog", foreign_keys="[CaregiverLog.resident_id]", back_populates="resident")
 
 
 class Task(Base):
@@ -41,7 +44,7 @@ class Task(Base):
     assigned_users = relationship("User", secondary="task_assignments", back_populates="tasks")
 
     # before task was done...
-    response_date_time= Column(DateTime(timezone=True), nullable=True)
+    response_date_time= Column(DateTime(timezone=True), nullable=True, index=True)
     # Response time (in minutes, calculated from call to showing up -> confirmed)
     response_time = Column(Float, nullable=True)  # Float to allow partial minutes (e.g., 5.5 minutes)
 
@@ -49,9 +52,9 @@ class Task(Base):
     # When tasks was done...
     # Foreign Key to User who confirmed the task (optional field)
     completed_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
-    completed_by = relationship("User", foreign_keys=[completed_by_id])
-    # Task confirmation time (when the task was acknowledged)
-    completion_time = Column(DateTime(timezone=True), nullable=True)
+    completed_by = relationship("User", foreign_keys=[completed_by_id], back_populates="tasks_completed")
+    # Task completion date/time (when the task was acknowledged)
+    completion_time = Column(DateTime(timezone=True), nullable=True, index=True)
     # Task time length (in minutes, calculated from response_date_time to completion_time)
     task_time_length = Column(Float, nullable=True)  # Same reason as above
 
@@ -79,7 +82,9 @@ class Task(Base):
 
     notifications = relationship("Notification", back_populates="task")
 
-    
+    # this is a one to many relationships     
+    caregiver_logs = relationship("CaregiverLog", back_populates="task")
+
 
 
 #set up the community model
@@ -102,6 +107,7 @@ class Community(Base):
 
     # one to many relationship with room
     rooms = relationship("Room", back_populates="community")
+
 
 
 class AlexaDevice(Base):
@@ -147,8 +153,8 @@ class Room(Base):
     community = relationship("Community", back_populates="rooms")
 
     # Optional Foreign Key to Resident User Profile (if a specific resident is linked to the room) 
-    resident_id = Column(Integer, ForeignKey("users.id"), nullable=True)
-    resident = relationship("User", back_populates="room", foreign_keys=[resident_id])
+    resident_id = Column(Integer, ForeignKey("users.id"), nullable=True, index = True)
+    resident = relationship("User", back_populates="room", foreign_keys=[resident_id], uselist=False)
     
     # One-to-Many relationship with AlexaDevice
     alexa_devices = relationship("AlexaDevice", back_populates="room")
@@ -180,6 +186,37 @@ class Notification(Base):
     status = Column(Enum('sent', 'read', 'acknowledged', name='notification_status'), default='sent')
 
 
+class CaregiverLog(Base):
+    __tablename__ = "caregiver_logs"
+    # Primary Key
+    id = Column(Integer, primary_key=True, index=True)
+
+    # Foreign Key to Task (if this log is related to a specific task)
+    task_id = Column(Integer, ForeignKey("tasks.id"), nullable=True)
+    task = relationship("Task", back_populates="caregiver_logs")
+    
+    # Foreign Key to User (caregiver performing the action)
+    caregiver_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    caregiver = relationship("User", foreign_keys=[caregiver_id])
+
+    # Foreign Key to User (resident receiving care, if applicable)
+    resident_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    resident = relationship("User", foreign_keys=[resident_id])
+    
+    # Action performed by the caregiver
+    action = Column(String, nullable=False)  # Description of the action taken
+    
+    # Timestamp of the action
+    timestamp = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Additional notes or observations
+    notes = Column(String, nullable=True)
+
+    # Status of the log entry
+    status = Column(Enum('completed', 'pending_review', 'rejected', name='log_status'), default='completed')
+    
+    # Optional location field (e.g., room number)
+    location = Column(String, nullable=True)
 
 # Task Assignment (Many-to-Many relationship table)
 task_assignments = Table(
