@@ -1,6 +1,6 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Enum, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, Enum, DateTime, func, Float, Table
 from sqlalchemy.orm import relationship
-from ..db import Base
+from database_configs.db import Base
 
 
 # User is the subclass of Base, it inherits all the behaviors and attributes
@@ -56,7 +56,7 @@ class Task(Base):
     # Task completion date/time (when the task was acknowledged)
     completion_time = Column(DateTime(timezone=True), nullable=True, index=True)
     # Task time length (in minutes, calculated from response_date_time to completion_time)
-    task_time_length = Column(Float, nullable=True)  # Same reason as above
+    task_time_length = Column(Float, nullable=True, default=0.0)  # Same reason as above
 
 
     # Task status (enum)
