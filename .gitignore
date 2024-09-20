@@ -1,7 +1,28 @@
-env/               # Ignore the virtual environment
-__pycache__/       # Ignore Python cache files
-*.pyc              # Ignore compiled Python files
-.DS_Store          # Ignore macOS system file (if on macOS)
-*.log              # Ignore log files
+# Virtual environment directories
+venv/
+env/
 
-touch .gitignore
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local database files
+*.sqlite3
+*.db
+
+# Environment variables file
+.env
+
+# Logs and temporary files
+*.log
+logs/
+
+# Alembic migration cache files
+alembic/versions/__pycache__/
+
+# Editor directories and OS-specific files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
