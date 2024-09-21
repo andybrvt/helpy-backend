@@ -47,7 +47,7 @@ class UserUpdate(BaseModel):
 class UserInDB(UserBase):
     """Schema for user data stored in the database"""
     id: int
-    password: str  # Use 'password' to match database field
+    hashed_password: str  # Use 'password' to match database field
 
     class Config:
         orm_mode = True
@@ -61,9 +61,12 @@ class UserResponse(BaseModel):
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 class UserLogin(BaseModel):
     """Schema for user login"""
     email: EmailStr
     password: str
+
+
 
