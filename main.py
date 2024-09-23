@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routers import user  # Import the user router
+from routers import user, alexa  # Import the user router
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -32,3 +32,5 @@ def read_item(item_id: int, q: str = None):
 
 # Include the user router
 app.include_router(user.router, prefix="/api", tags=["users"])
+app.include_router(alexa.router, prefix="/api", tags=["alexa"])
+
