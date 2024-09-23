@@ -69,4 +69,8 @@ class UserLogin(BaseModel):
     password: str
 
 
+class OAuth2Login(BaseModel):
+    username: str  # Accept username as email
+    password: str
+
 

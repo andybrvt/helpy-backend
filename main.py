@@ -17,4 +17,4 @@ def read_item(item_id: int, q: str = None):
     return {"item_id": item_id, "q": q}
 
 # Include the user router
-app.include_router(user.router)
+app.include_router(user.router, prefix="/api", tags=["users"])
