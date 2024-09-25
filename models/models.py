@@ -39,7 +39,7 @@ class Task(Base):
     __tablename__ = "tasks"
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
-    description = Column(String)
+    description = Column(String, nullable=True)
     # many to many relationship with User (assigned caregivers) 
     assigned_users = relationship("User", secondary="task_assignments", back_populates="tasks")
 
@@ -60,7 +60,7 @@ class Task(Base):
 
 
     # Task status (enum)
-    status = Column(Enum('pending', 'in_progress', 'completed', name='task_status'), default='pending')
+    status = Column(Enum('pending', 'in_progress', 'completed', name='task_status'), default='pending', nullable=False)
     # Priority score (integer value for urgency)
     priority_score = Column(Integer, nullable=False, default=1)  # Default priority score
 
@@ -73,7 +73,7 @@ class Task(Base):
     
     # Foreign Key to Community table
     #the foreign key will signify the one to many relationship
-    community_id = Column(Integer, ForeignKey("communities.id"), nullable=False)
+    community_id = Column(Integer, ForeignKey("communities.id"), nullable=True)
     community = relationship("Community", back_populates="tasks")
 
     # Foreign Key to AlexaDevice table, one alexa can have many tasks
