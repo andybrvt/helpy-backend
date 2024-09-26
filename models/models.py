@@ -10,7 +10,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     email = Column(String, unique=True, index=True)
-    role = Column(Enum('resident', 'staff', 'administrator', 'corporate_leader', name='user_role'))
+    role = Column(Enum('resident', 'staff', 'administrator', 'corporate_leader', 'care_staff', name='user_role'))
     staff_id = Column(String, index=True)
     hashed_password = Column(String)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -107,6 +107,9 @@ class Community(Base):
 
     # one to many relationship with room
     rooms = relationship("Room", back_populates="community")
+
+     # Automatically set created_at when a new record is inserted
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
 
 
 
