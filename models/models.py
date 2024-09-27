@@ -30,7 +30,7 @@ class User(Base):
 
     # Task one to many with communities
     community_id = Column(Integer, ForeignKey("communities.id", use_alter=True), nullable=True)
-    community = relationship("Community", back_populates="users", foreign_keys=[community_id])
+    community = relationship("Community", back_populates="users", foreign_keys=[community_id], lazy='selectin')
 
     room = relationship("Room", back_populates="resident", uselist=False)  # One-to-one relationship
     
@@ -108,13 +108,13 @@ class Community(Base):
 
     # Foreign Key to User (Creator)
     created_by_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    created_by = relationship("User", foreign_keys=[created_by_id])
+    created_by = relationship("User", foreign_keys=[created_by_id], lazy='selectin')
 
     # One-to-Many relationship with Task
     tasks = relationship("Task", back_populates="community")
 
     # One-to-Many relationship with User (if users belong to specific communities)
-    users = relationship("User", back_populates="community", foreign_keys="[User.community_id]")
+    users = relationship("User", back_populates="community", foreign_keys="[User.community_id]", lazy='selectin')
 
     # one to many relationship with room
     rooms = relationship("Room", back_populates="community")

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from database_configs.db import get_db  # Ensure this is the correct path to your DB config
-from models.models import Community  # Import the Community model
+from models.models import Community, User  # Import the Community model
 from schemas.community import CommunityCreate, CommunityUpdate, CommunityResponse  # Import Community schemas
 from crud.crud_community import (
     create_community, 
@@ -24,6 +24,9 @@ async def create_new_community(
     db: AsyncSession = Depends(get_db),
     current_user: UserInDB = Depends(get_current_user)
 ):
+    if not db or not current_user:
+        raise HTTPException(status_code=400, detail="Invalid session or user context")
+
     created_community = await create_community(db=db, community=community, creator_id=current_user.id)
     return created_community
 
@@ -72,3 +75,29 @@ async def delete_community_by_id(
         raise HTTPException(status_code=404, detail="Community not found")
     deleted_community = await delete_community(db=db, community_id=community_id)
     return deleted_community
+
+
+@router.get("/community/manager", response_model=CommunityResponse)
+async def get_manager_community(
+    db: AsyncSession = Depends(get_db), 
+    current_user: User = Depends(get_current_user)
+):
+    # Check if the user is a manager
+    if current_user.role != 'manager':
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not authorized to access this resource."
+        )
+    
+    print('community id here')
+    print(current_user.community_id)
+    # Fetch the community associated with this manager
+    community = await db.get(Community, current_user.community_id)
+    
+    if not community:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Community not found."
+        )
+    
+    return community

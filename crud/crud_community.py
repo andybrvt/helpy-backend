@@ -2,48 +2,44 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from models.models import Community, User
 from schemas.community import CommunityCreate, CommunityUpdate
-from crud.crud_user import update_user  # Import your existing update_user function
+from crud.crud_user import update_user, get_user  # Import your existing update_user function
 from schemas.user import UserUpdate  # Import the UserUpdate schema
 from fastapi import HTTPException
 
 
-# Create a new community
 async def create_community(db: AsyncSession, community: CommunityCreate, creator_id: int):
-    new_community = Community(
-        name=community.name,
-        address=community.address,
-        email=community.email,
-        phone_number=community.phone_number,
-        created_by_id=creator_id  # Set the creator's ID
-    )
-    db.add(new_community)
+    try:
+        # Step 1: Create and commit the new community
+        new_community = Community(
+            name=community.name,
+            address=community.address,
+            email=community.email,
+            phone_number=community.phone_number,
+            created_by_id=creator_id  # Set the creator's ID
+        )
+        db.add(new_community)
+        await db.commit()  # Commit to generate new_community.id
+        await db.refresh(new_community)  # Now new_community.id will have the generated value
 
-    # Retrieve the creator user and update
-    creator = await db.get(User, creator_id)
-    print(creator)
-    if creator:
-        creator.community_id = new_community.id
-        creator.role = 'manager'  # Update the role to 'manager'
-        db.add(creator)
+        # Step 2: Retrieve and update the user using selectinload to fetch related community
+        creator = await get_user(db, creator_id)
+        print(creator.id)
+        
+        if creator:
+            creator.community_id = new_community.id
+            creator.role = 'manager'  # Update the role to 'manager'
+            db.add(creator)
+            await db.commit()  # Commit the user changes
+            await db.refresh(creator)  # Refresh the creator object
 
-    await db.commit()
-    await db.refresh(new_community)
-    await db.refresh(creator)
+        
+        
+        return new_community
 
+    except Exception as e:
+        await db.rollback()  # Rollback the transaction in case of an error
+        raise e
 
-
-    '''
-    if creator:
-        creator.community_id = new_community.id
-        creator.role = 'manager'  # Update the role to 'manager'
-        db.add(creator)
-        await db.commit()
-        await db.refresh(creator)
-
-    '''
-    
-
-    return new_community
 
 # Get a community by ID
 async def get_community_by_id(db: AsyncSession, community_id: int):
