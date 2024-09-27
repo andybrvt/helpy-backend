@@ -9,6 +9,7 @@ class CommunityCreate(BaseModel):
     email: Optional[EmailStr] = None
     phone_number: Optional[str] = Field(None, pattern=r'^\+?\d{10,15}$')  # Use 'pattern' instead of 'regex'
 
+
 # Schema for updating a community
 class CommunityUpdate(BaseModel):
     name: Optional[str] = None
@@ -24,6 +25,8 @@ class CommunityResponse(BaseModel):
     email: Optional[EmailStr] = None
     phone_number: Optional[str] = None
     created_at: datetime
+    created_by_id: int  # Include creator ID
+
 
 
     class Config:

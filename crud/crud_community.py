@@ -3,14 +3,14 @@ from sqlalchemy.future import select
 from models.models import Community
 from schemas.community import CommunityCreate, CommunityUpdate
 
-
 # Create a new community
-async def create_community(db: AsyncSession, community: CommunityCreate):
+async def create_community(db: AsyncSession, community: CommunityCreate, creator_id: int):
     new_community = Community(
         name=community.name,
         address=community.address,
         email=community.email,
         phone_number=community.phone_number,
+        created_by_id=creator_id  # Set the creator's ID
     )
     db.add(new_community)
     await db.commit()

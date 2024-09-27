@@ -24,7 +24,7 @@ async def create_new_community(
     db: AsyncSession = Depends(get_db),
     current_user: UserInDB = Depends(get_current_user)
 ):
-    created_community = await create_community(db=db, community=community)
+    created_community = await create_community(db=db, community=community, creator_id=current_user.id)
     return created_community
 
 # Route to get a community by ID (auth required)

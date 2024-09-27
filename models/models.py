@@ -23,8 +23,8 @@ class User(Base):
     tasks_completed = relationship("Task", back_populates="completed_by")
 
     # Task one to many with communities
-    community_id = Column(Integer, ForeignKey("communities.id"), nullable=True)  # Foreign key to Community
-    community = relationship("Community", back_populates="users")
+    community_id = Column(Integer, ForeignKey("communities.id", use_alter=True), nullable=True)
+    community = relationship("Community", back_populates="users", foreign_keys=[community_id])
 
     room = relationship("Room", back_populates="resident", uselist=False)  # One-to-one relationship
     
@@ -100,10 +100,15 @@ class Community(Base):
     email = Column(String, nullable=True)  # Optional contact info (email, phone, etc.)
     phone_number = Column(String, nullable=True)
 
+    # Foreign Key to User (Creator)
+    created_by_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_by = relationship("User", foreign_keys=[created_by_id])
+
     # One-to-Many relationship with Task
     tasks = relationship("Task", back_populates="community")
+
     # One-to-Many relationship with User (if users belong to specific communities)
-    users = relationship("User", back_populates="community")
+    users = relationship("User", back_populates="community", foreign_keys="[User.community_id]")
 
     # one to many relationship with room
     rooms = relationship("Room", back_populates="community")
