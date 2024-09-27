@@ -1,6 +1,12 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Enum, DateTime, func, Float, Table
 from sqlalchemy.orm import relationship
 from database_configs.db import Base
+from enum import Enum as PyEnum
+
+
+# psql 
+# psql -h localhost -U andyle -d helpydb
+
 
 
 # User is the subclass of Base, it inherits all the behaviors and attributes
@@ -10,8 +16,8 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
     email = Column(String, unique=True, index=True)
-    role = Column(Enum('resident', 'staff', 'administrator', 'corporate_leader', 'care_staff', name='user_role'))
-    staff_id = Column(String, index=True)
+    role = Column(Enum('resident', 'staff', 'administrator', 'corporate_leader', 'care_staff', 'manager', name='user_role'))
+    staff_id = Column(String, index=True, nullable=True)
     hashed_password = Column(String)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

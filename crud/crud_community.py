@@ -1,7 +1,11 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from models.models import Community
+from models.models import Community, User
 from schemas.community import CommunityCreate, CommunityUpdate
+from crud.crud_user import update_user  # Import your existing update_user function
+from schemas.user import UserUpdate  # Import the UserUpdate schema
+from fastapi import HTTPException
+
 
 # Create a new community
 async def create_community(db: AsyncSession, community: CommunityCreate, creator_id: int):
@@ -13,8 +17,32 @@ async def create_community(db: AsyncSession, community: CommunityCreate, creator
         created_by_id=creator_id  # Set the creator's ID
     )
     db.add(new_community)
+
+    # Retrieve the creator user and update
+    creator = await db.get(User, creator_id)
+    print(creator)
+    if creator:
+        creator.community_id = new_community.id
+        creator.role = 'manager'  # Update the role to 'manager'
+        db.add(creator)
+
     await db.commit()
     await db.refresh(new_community)
+    await db.refresh(creator)
+
+
+
+    '''
+    if creator:
+        creator.community_id = new_community.id
+        creator.role = 'manager'  # Update the role to 'manager'
+        db.add(creator)
+        await db.commit()
+        await db.refresh(creator)
+
+    '''
+    
+
     return new_community
 
 # Get a community by ID
