@@ -27,7 +27,5 @@ class CommunityResponse(BaseModel):
     created_at: datetime
     created_by_id: int  # Include creator ID
 
-
-
     class Config:
         orm_mode = True  # This will allow reading from ORM models
