@@ -1,23 +1,32 @@
-# schemas/care_staff.py
-
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 from datetime import datetime
 
-# Schema for creating a new care staff member
 class CareStaffCreate(BaseModel):
     name: str
     email: EmailStr
-    role: str = "care_staff"  # Default role set to care staff
-    password: str
+    password: str = Field(..., min_length=8, max_length=100, description="Password must be between 8 and 100 characters.")
+    community_id: Optional[int] = None  # Add community ID for association
 
-# Schema for updating an existing care staff member
 class CareStaffUpdate(BaseModel):
     name: Optional[str] = None
     email: Optional[EmailStr] = None
-    password: Optional[str] = None
+    password: Optional[str] = Field(None, min_length=8, max_length=100)  # Apply same password validation
 
-# Schema for reading care staff information
+
+# Schema for returning community data
+class CommunityResponse(BaseModel):
+    id: int
+    name: str
+    address: str
+    email: Optional[EmailStr] = None
+    phone_number: Optional[str] = None
+    created_at: datetime
+    created_by_id: int  # Include creator ID
+
+    class Config:
+        orm_mode = True
+
 class CareStaffResponse(BaseModel):
     id: int
     name: str
@@ -25,6 +34,8 @@ class CareStaffResponse(BaseModel):
     role: str
     created_at: datetime
     updated_at: Optional[datetime] = None
+    community: Optional[CommunityResponse]  # Include community details
+
 
     class Config:
         orm_mode = True

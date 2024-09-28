@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routers import user, alexa, task, community  # Import the user router
+from routers import user, alexa, task, community,care_staff  # Import the user router
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -35,5 +35,6 @@ app.include_router(user.router, prefix="/api", tags=["users"])
 app.include_router(alexa.router, prefix="/api", tags=["alexa"])
 app.include_router(task.router, prefix="/api", tags=["tasks"])
 app.include_router(community.router, prefix="/api", tags=["communities"])  
+app.include_router(care_staff.router, prefix="/api", tags=["care_staff"])  
 
 
