@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, Enum, DateTime, func
 from sqlalchemy.orm import relationship
 from database_configs.db import Base
 from enum import Enum as PyEnum
+from sqlalchemy import UniqueConstraint
 
 
 # psql 
@@ -160,7 +161,7 @@ class Room(Base):
     id = Column(Integer, primary_key=True, index=True)
     
     # Room number or name
-    room_number = Column(String, nullable=False, index=True, unique=True)
+    room_number = Column(String, nullable=False, index=True)
     
     # Foreign Key to Community table
     community_id = Column(Integer, ForeignKey("communities.id"), nullable=False)
@@ -171,11 +172,14 @@ class Room(Base):
     resident = relationship("User", back_populates="room", foreign_keys=[resident_id], uselist=False)
     
     # One-to-Many relationship with AlexaDevice
-    alexa_devices = relationship("AlexaDevice", back_populates="room")
+    alexa_devices = relationship("AlexaDevice", back_populates="room", lazy='selectin')
     
     # Optional fields for room properties
     floor_number = Column(Integer, nullable=True)  # Optional field to store the floor number
     room_type = Column(String, nullable=True)  # Optional field to store room type (e.g., single, shared)
+
+    # Add composite unique constraint
+    __table_args__ = (UniqueConstraint('community_id', 'room_number', name='_community_room_uc'),)
 
 
 class Notification(Base):
@@ -199,7 +203,7 @@ class Notification(Base):
     # Status of the notification (e.g., sent, read, acknowledged)
     status = Column(Enum('sent', 'read', 'acknowledged', name='notification_status'), default='sent')
 
-
+    
 class CaregiverLog(Base):
     __tablename__ = "caregiver_logs"
     # Primary Key
