@@ -38,10 +38,6 @@ async def read_rooms_for_community(
     db: AsyncSession = Depends(get_db), 
     current_user: User = Depends(get_current_user)
 ):
-    # Ensure the current user is part of the requested community
-    if current_user.community_id != community_id:
-        raise HTTPException(status_code=403, detail="Not authorized to access this community's rooms")
-
     # Fetch all rooms for the specified community
     rooms = await get_rooms_for_community(db=db, community_id=community_id)
     return [RoomResponse.from_orm(room) for room in rooms]
@@ -86,3 +82,14 @@ async def delete_existing_room(
     # Delete the room from the database
     deleted_room = await delete_room(db=db, room_id=room_id)
     return RoomResponse.from_orm(deleted_room)
+
+@router.get("/my-community/rooms", response_model=List[RoomResponse])
+async def read_rooms_for_logged_in_user_community(
+    db: AsyncSession = Depends(get_db), 
+    current_user: User = Depends(get_current_user)
+):
+    # Fetch all rooms for the community associated with the logged-in user
+    community_id = current_user.community_id
+    rooms = await get_rooms_for_community(db=db, community_id=community_id)
+    return [RoomResponse.from_orm(room) for room in rooms]
+

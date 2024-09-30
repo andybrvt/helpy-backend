@@ -9,7 +9,8 @@ from crud.crud_care_staff import (
     update_care_staff,
     delete_care_staff,
 )
-from auth.dependencies import get_current_user, get_db
+from database_configs.db import get_db  # Use the correct path to your database module
+from auth.dependencies import get_current_user
 from sqlalchemy.future import select  # Import the select function for querying
 
 CARE_STAFF_ROLE = 'care_staff'  # Ensure this role is added to the Enum in your models
@@ -36,7 +37,7 @@ async def create_new_care_staff(
 
 # Route to get care staff by ID
 @router.get("/care_staff/{care_staff_id}", response_model=CareStaffResponse)
-async def read_care_staff(care_staff_id: int, db: AsyncSession = Depends(get_db)):
+async def read_care_staff(care_staff_id: int, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     care_staff = await get_care_staff_by_id(db=db, user_id=care_staff_id)
     if not care_staff:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Care staff not found")
@@ -44,7 +45,7 @@ async def read_care_staff(care_staff_id: int, db: AsyncSession = Depends(get_db)
 
 # Route to get all care staff members with pagination
 @router.get("/care_staff/", response_model=list[CareStaffResponse])
-async def read_all_care_staff(skip: int = 0, limit: int = 10, db: AsyncSession = Depends(get_db)):
+async def read_all_care_staff(skip: int = 0, limit: int = 10, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     return await get_care_staff(db=db, skip=skip, limit=limit)
 
 # Route to update care staff information
