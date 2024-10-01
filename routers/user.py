@@ -129,4 +129,13 @@ async def oauth2_login(
     "role": "staff",                         
     "password": "StrongPass123!"            
 }
+
+
+{
+    "name": "Community Manager",                    
+    "email": "manager@example.com",        
+    "role": "manager",                         
+    "password": "ManagePass123!"            
+}
+
 '''

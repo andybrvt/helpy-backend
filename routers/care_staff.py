@@ -82,21 +82,29 @@ async def delete_care_staff_info(
     return deleted_care_staff
 
 
-# Route to get all care staff members of a specific community
 @router.get("/communities/{community_id}/care_staff/", response_model=list[CareStaffResponse])
 async def read_care_staff_by_community(
     community_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)  # Auth protected
 ):
-    # Check if the current user is associated with the community
-    if current_user.community_id != community_id and current_user.role != 'manager':
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, 
-            detail="You do not have access to this community's staff."
-        )
-
+    # No need to check if the user is associated with the community
     stmt = select(User).filter(User.community_id == community_id, User.role == CARE_STAFF_ROLE)
+    result = await db.execute(stmt)
+    care_staff_list = result.scalars().all()
+    return care_staff_list
+
+
+@router.get("/my-community/care_staff/", response_model=list[CareStaffResponse])
+async def read_care_staff_for_user_community(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)  # Auth protected
+):
+    # Use the current user's community_id to get the staff
+    if not current_user.community_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User is not associated with any community.")
+
+    stmt = select(User).filter(User.community_id == current_user.community_id, User.role == CARE_STAFF_ROLE)
     result = await db.execute(stmt)
     care_staff_list = result.scalars().all()
     return care_staff_list
