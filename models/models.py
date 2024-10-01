@@ -123,6 +123,9 @@ class Community(Base):
      # Automatically set created_at when a new record is inserted
     created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
 
+    # Relationship with AlexaDevice
+    alexa_devices = relationship("AlexaDevice", back_populates="community")
+
 
 
 class AlexaDevice(Base):
@@ -153,6 +156,10 @@ class AlexaDevice(Base):
 
     # One-to-Many relationship with Task (tasks requested by this device)
     tasks_requested = relationship("Task", back_populates="alexa_device")
+
+    community_id = Column(Integer, ForeignKey("communities.id"), nullable=True)
+    community = relationship("Community", back_populates="alexa_devices")
+
 
     
 class Room(Base):
