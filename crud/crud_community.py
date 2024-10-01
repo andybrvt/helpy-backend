@@ -5,17 +5,36 @@ from schemas.community import CommunityCreate, CommunityUpdate
 from crud.crud_user import update_user, get_user  # Import your existing update_user function
 from schemas.user import UserUpdate  # Import the UserUpdate schema
 from fastapi import HTTPException
+import random
+import string
+
+
+
+# Helper function to generate a unique 5-character alphanumeric PIN
+async def generate_unique_pin(db: AsyncSession):
+    while True:
+        pin_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
+        # Ensure the PIN is unique across all communities
+        existing_community = await db.execute(select(Community).filter(Community.pin_code == pin_code))
+        if not existing_community.scalars().first():
+            return pin_code  # Return the unique pin_code
 
 
 async def create_community(db: AsyncSession, community: CommunityCreate, creator_id: int):
     try:
+        # Step 1: Generate a unique pin for the new community
+        pin_code = await generate_unique_pin(db)
+
+
         # Step 1: Create and commit the new community
         new_community = Community(
             name=community.name,
             address=community.address,
             email=community.email,
             phone_number=community.phone_number,
-            created_by_id=creator_id  # Set the creator's ID
+            created_by_id=creator_id,  # Set the creator's ID
+            pin_code=pin_code  # Assign the generated pin_code
+
         )
         db.add(new_community)
         await db.commit()  # Commit to generate new_community.id

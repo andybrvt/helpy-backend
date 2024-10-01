@@ -126,6 +126,8 @@ class Community(Base):
     # Relationship with AlexaDevice
     alexa_devices = relationship("AlexaDevice", back_populates="community")
 
+    # New: Unique alphanumeric PIN for the community
+    pin_code = Column(String(5), unique=True, nullable=False, index=True)  # 5-character alphanumeric PIN
 
 
 class AlexaDevice(Base):

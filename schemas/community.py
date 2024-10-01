@@ -24,6 +24,7 @@ class CommunityResponse(BaseModel):
     address: str
     email: Optional[EmailStr] = None
     phone_number: Optional[str] = None
+    pin_code: str  # Add pin_code to the response schema
     created_at: datetime
     created_by_id: int  # Include creator ID
 
