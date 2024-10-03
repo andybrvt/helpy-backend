@@ -20,23 +20,58 @@ async def handle_register_device_intent(data, db):
     print(pin_code)
 
     if not pin_code:
-        raise HTTPException(status_code=400, detail="PIN code is required")
+        return {
+            "version": "1.0",
+            "response": {
+                "outputSpeech": {
+                    "type": "PlainText",
+                    "text": "PIN code is required to register the device. Please provide a valid PIN."
+                },
+                "shouldEndSession": False
+            }
+        }
 
     # Fetch the community using the pin code
     community = await get_community_by_pin(db, pin_code)
     if not community:
-        raise HTTPException(status_code=404, detail="Community not found")
+        return {
+            "version": "1.0",
+            "response": {
+                "outputSpeech": {
+                    "type": "PlainText",
+                    "text": f"No community found with the provided PIN code '{pin_code}'. Please try again."
+                },
+                "shouldEndSession": False
+            }
+        }
 
     # Fetch the room within the community
     room = await get_room_by_number(db, room_number, community.id)
     if not room:
-        raise HTTPException(status_code=404, detail="Room not found")
+        return {
+            "version": "1.0",
+            "response": {
+                "outputSpeech": {
+                    "type": "PlainText",
+                    "text": f"Room '{room_number}' not found in the community. Please provide a valid room number."
+                },
+                "shouldEndSession": False
+            }
+        }
 
     # Check if the device is already registered
     existing_device = await get_alexa_device_by_id(db, device_id)
     if existing_device:
-        raise HTTPException(status_code=400, detail="Device already registered")
-
+        return {
+            "version": "1.0",
+            "response": {
+                "outputSpeech": {
+                    "type": "PlainText",
+                    "text": "This device is already registered to a room. If you need to change the room, please contact support."
+                },
+                "shouldEndSession": False
+            }
+        }
     
     # Register the Alexa device
     alexa_device = AlexaDeviceCreate(
