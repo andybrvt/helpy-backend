@@ -6,6 +6,8 @@ from models.models import User  # Import the User model for authentication
 from crud.crud_room import create_room, get_room_by_id, get_rooms_for_community, update_room, delete_room  # Adjust paths as needed
 from auth.dependencies import get_current_user  # Import the authentication dependency
 from database_configs.db import get_db  # Ensure this is the correct path to your DB config
+from schemas.alexadevice import AlexaDeviceResponse
+
 
 router = APIRouter()
 
@@ -91,5 +93,20 @@ async def read_rooms_for_logged_in_user_community(
     # Fetch all rooms for the community associated with the logged-in user
     community_id = current_user.community_id
     rooms = await get_rooms_for_community(db=db, community_id=community_id)
-    return [RoomResponse.from_orm(room) for room in rooms]
+    # Manually convert each room and its alexa_devices
+    room_responses = []
+    for room in rooms:
+        alexa_devices_response = [AlexaDeviceResponse.from_orm(device) for device in room.alexa_devices]
+        
+        room_responses.append(RoomResponse(
+            id=room.id,
+            room_number=room.room_number,
+            community_id=room.community_id,
+            resident_id=room.resident_id,
+            floor_number=room.floor_number,
+            room_type=room.room_type,
+            alexa_devices=alexa_devices_response  # Convert the alexa devices here
+        ))
+
+    return room_responses
 

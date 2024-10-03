@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional, List
+from schemas.alexadevice import AlexaDeviceResponse  # Import the correct AlexaDevice schema
+
 
 # Schema for creating a new room
 class RoomCreate(BaseModel):
@@ -29,7 +31,7 @@ class RoomResponse(BaseModel):
     resident_id: Optional[int] = None
     floor_number: Optional[int] = None
     room_type: Optional[str] = None
-    alexa_devices: List[str] = []  # Replace with the correct type for Alexa devices if necessary
+    alexa_devices: List[AlexaDeviceResponse] = []  # Change to a list of AlexaDeviceResponse objects
 
     class Config:
         orm_mode = True

@@ -91,3 +91,9 @@ async def delete_community(db: AsyncSession, community_id: int):
     await db.delete(db_community)
     await db.commit()
     return db_community
+
+# Get a community by its pin code
+async def get_community_by_pin(db: AsyncSession, pin_code: str):
+    stmt = select(Community).filter(Community.pin_code == pin_code)
+    result = await db.execute(stmt)
+    return result.scalars().first()

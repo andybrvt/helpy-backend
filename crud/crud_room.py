@@ -52,7 +52,8 @@ async def delete_room(db: AsyncSession, room_id: int):
     await db.commit()
     return db_room
 
-# Get a room by room number (NEW FUNCTION)
-async def get_room_by_number(db: AsyncSession, room_number: str):
-    result = await db.execute(select(Room).filter(Room.room_number == room_number))
+# Get a room by room number and community ID
+async def get_room_by_number(db: AsyncSession, room_number: str, community_id: int):
+    result = await db.execute(select(Room).filter(Room.room_number == room_number, Room.community_id == community_id))
     return result.scalars().first()
+

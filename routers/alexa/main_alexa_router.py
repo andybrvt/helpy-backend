@@ -2,11 +2,15 @@ from fastapi import APIRouter, Request, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from database_configs.db import get_db  # Use the correct path to your database module
 from crud.crud_task import create_task  # Import the task creation function
+from .help_response import handle_help_intent  # Import the help response
+from .device_registration import handle_register_device_intent  # Import device registration handler
+
+
 
 router = APIRouter()
 
-@router.post("/alexa-request-help")
-async def alexa_request_help(request: Request, db: AsyncSession = Depends(get_db)):
+@router.post("/actions")  # This will be accessible at /alexa/actions
+async def alexa_actions(request: Request, db: AsyncSession = Depends(get_db)):
     print('data json conversion')
     data = await request.json()
     
@@ -40,8 +44,13 @@ async def handle_intent_request(data, db):
     intent_name = data['request']['intent']['name']
 
     if intent_name == "RequestHelpIntent":
+        return await handle_help_intent(data, db)  # Delegate to help_response.py
+
         
-        task = data['request']['intent']['slots'].get('Task', {}).get('value')
+
+
+        """
+             task = data['request']['intent']['slots'].get('Task', {}).get('value')
         if task:
             try:
                 # Create the task in the database
@@ -60,30 +69,13 @@ async def handle_intent_request(data, db):
             except Exception as e:
                 raise HTTPException(status_code=500, detail="Error creating task")
     
+
+        """
+    
+    elif intent_name == "RegisterDeviceIntent":
+        return await handle_register_device_intent(data, db)
+
     return await default_response()
-    
-    '''
-    if intent_name == "RequestHelpIntent":
-        task_type = data['request']['intent']['slots'].get('TaskType', {}).get('value')
-        if task_type:
-            try:
-                # Create the task in the database
-                await create_task(db, task_type)
-                return {
-                    "version": "1.0",
-                    "response": {
-                        "outputSpeech": {
-                            "type": "PlainText",
-                            "text": f"Task '{task_type}' has been created. We'll assist you shortly."
-                        },
-                        "shouldEndSession": False
-                    }
-                }
-            except Exception as e:
-                raise HTTPException(status_code=500, detail="Error creating task")
-    
-    return default_response()
-    '''
 
     
     
@@ -99,3 +91,13 @@ async def default_response():
             "shouldEndSession": False
         }
     }
+
+
+"""
+Register this device with room {room} and PIN {PIN}
+
+room: 1204
+
+PIN: MSTD4
+
+"""
