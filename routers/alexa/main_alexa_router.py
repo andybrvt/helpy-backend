@@ -45,32 +45,6 @@ async def handle_intent_request(data, db):
 
     if intent_name == "RequestHelpIntent":
         return await handle_help_intent(data, db)  # Delegate to help_response.py
-
-        
-
-
-        """
-             task = data['request']['intent']['slots'].get('Task', {}).get('value')
-        if task:
-            try:
-                # Create the task in the database
-                print('do you get here ', task)
-                await create_task(db, task)
-                return {
-                    "version": "1.0",
-                    "response": {
-                        "outputSpeech": {
-                            "type": "PlainText",
-                            "text": f"Task '{task}' has been created. We'll assist you shortly."
-                        },
-                        "shouldEndSession": False
-                    }
-                }
-            except Exception as e:
-                raise HTTPException(status_code=500, detail="Error creating task")
-    
-
-        """
     
     elif intent_name == "RegisterDeviceIntent":
         return await handle_register_device_intent(data, db)

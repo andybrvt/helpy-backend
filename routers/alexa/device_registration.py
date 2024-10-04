@@ -16,8 +16,7 @@ async def handle_register_device_intent(data, db):
     # Extract the PIN from slots
     pin_code = data['request']['intent']['slots']['PIN']['value']
 
-    print(room_number)
-    print(pin_code)
+    
 
     if not pin_code:
         return {

@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from models.models import AlexaDevice  # Adjusted import to point to models folder
+from models.models import AlexaDevice, Room, Community  # Adjusted import to point to models folder
 from schemas.alexadevice import AlexaDeviceCreate, AlexaDeviceUpdate  # Adjusted import to point to schema folder
 from sqlalchemy.future import select
 
@@ -60,3 +60,24 @@ async def get_all_alexa_devices(db: AsyncSession):
 async def get_alexa_devices_by_community(db: AsyncSession, community_id: int):
     result = await db.execute(select(AlexaDevice).filter(AlexaDevice.community_id == community_id))
     return result.scalars().all()
+
+
+# Function to get the room and community from the Alexa device's device_id
+async def get_room_and_community_from_alexa(db: AsyncSession, alexa_device_id: str):
+    # Query the AlexaDevice by its device_id (string)
+    stmt = select(AlexaDevice).filter(AlexaDevice.device_id == alexa_device_id)
+    result = await db.execute(stmt)
+    alexa_device = result.scalars().first()
+
+    if not alexa_device:
+        return None, None  # No Alexa device found for the given device_id
+
+    # Now that we have the AlexaDevice, get the associated room
+    room = alexa_device.room
+    if not room:
+        return None, None  # No room found for the given Alexa device
+
+    # Fetch the community associated with the room
+    community = room.community
+
+    return room, community, alexa_device.id  # Return the room, community, and the AlexaDevice's id (integer)

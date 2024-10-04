@@ -87,10 +87,18 @@ class Task(Base):
     alexa_device_id = Column(Integer, ForeignKey("alexa_devices.id"), nullable=True)
     alexa_device = relationship("AlexaDevice", back_populates="tasks_requested")
 
+
+    # Foreign Key to Room table (new field)
+    room_id = Column(Integer, ForeignKey("rooms.id"), nullable=True)  # Room association
+    room = relationship("Room", back_populates="tasks")  # Set the relationship to the Room model
+  
+
+
     notifications = relationship("Notification", back_populates="task")
 
     # this is a one to many relationships     
     caregiver_logs = relationship("CaregiverLog", back_populates="task")
+
 
 
 
@@ -118,13 +126,13 @@ class Community(Base):
     users = relationship("User", back_populates="community", foreign_keys="[User.community_id]", lazy='selectin')
 
     # one to many relationship with room
-    rooms = relationship("Room", back_populates="community")
+    rooms = relationship("Room", back_populates="community", lazy='selectin')
 
      # Automatically set created_at when a new record is inserted
     created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
 
     # Relationship with AlexaDevice
-    alexa_devices = relationship("AlexaDevice", back_populates="community")
+    alexa_devices = relationship("AlexaDevice", back_populates="community", lazy='selectin')
 
     # New: Unique alphanumeric PIN for the community
     pin_code = Column(String(5), unique=True, nullable=False, index=True)  # 5-character alphanumeric PIN
@@ -141,7 +149,7 @@ class AlexaDevice(Base):
     # Foreign Key to Room table
     # one to many relationship with room, a room can have multiple alexa's i guess
     room_id = Column(Integer, ForeignKey("rooms.id"), nullable=False)
-    room = relationship("Room", back_populates="alexa_devices")
+    room = relationship("Room", back_populates="alexa_devices", lazy='selectin')
     
 
     # Status of the device (e.g., active, inactive, offline)
@@ -160,7 +168,7 @@ class AlexaDevice(Base):
     tasks_requested = relationship("Task", back_populates="alexa_device")
 
     community_id = Column(Integer, ForeignKey("communities.id"), nullable=True)
-    community = relationship("Community", back_populates="alexa_devices")
+    community = relationship("Community", back_populates="alexa_devices", lazy='selectin')
 
 
     
@@ -174,7 +182,7 @@ class Room(Base):
     
     # Foreign Key to Community table
     community_id = Column(Integer, ForeignKey("communities.id"), nullable=False)
-    community = relationship("Community", back_populates="rooms")
+    community = relationship("Community", back_populates="rooms", lazy='selectin')
 
     # Optional Foreign Key to Resident User Profile (if a specific resident is linked to the room) 
     resident_id = Column(Integer, ForeignKey("users.id"), nullable=True, index = True)
@@ -186,6 +194,10 @@ class Room(Base):
     # Optional fields for room properties
     floor_number = Column(Integer, nullable=True)  # Optional field to store the floor number
     room_type = Column(String, nullable=True)  # Optional field to store room type (e.g., single, shared)
+
+    # Relationship with Task (One room can have many tasks)
+    tasks = relationship("Task", back_populates="room")
+
 
     # Add composite unique constraint
     __table_args__ = (UniqueConstraint('community_id', 'room_number', name='_community_room_uc'),)

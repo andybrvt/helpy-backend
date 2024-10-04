@@ -36,3 +36,11 @@ class RoomResponse(BaseModel):
     class Config:
         orm_mode = True
         from_attributes = True  # Add this line to allow ORM mapping
+
+class RoomAlexaStatusResponse(BaseModel):
+    room_id: int
+    alexa_connected: bool  # True if Alexa devices are linked
+
+    class Config:
+        orm_mode = True
+

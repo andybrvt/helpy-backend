@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession  # Using AsyncSession for async DB operations
 from typing import List
-from schemas.room import RoomCreate, RoomUpdate, RoomResponse  # Adjust paths as needed
+from schemas.room import RoomCreate, RoomUpdate, RoomResponse, RoomAlexaStatusResponse  # Adjust paths as needed
 from models.models import User  # Import the User model for authentication
 from crud.crud_room import create_room, get_room_by_id, get_rooms_for_community, update_room, delete_room  # Adjust paths as needed
 from auth.dependencies import get_current_user  # Import the authentication dependency
@@ -110,3 +110,24 @@ async def read_rooms_for_logged_in_user_community(
 
     return room_responses
 
+
+@router.get("/rooms/{room_id}/alexa-status", response_model=RoomAlexaStatusResponse)
+async def check_alexa_device_status(room_id: int, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    # Fetch the room by ID
+    db_room = await get_room_by_id(db, room_id=room_id)
+    
+    if not db_room:
+        raise HTTPException(status_code=404, detail="Room not found")
+
+    # Ensure the room belongs to the current user's community
+    if db_room.community_id != current_user.community_id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this room")
+
+    # Check if there are any Alexa devices linked to the room
+    alexa_devices = db_room.alexa_devices
+    alexa_connected = bool(alexa_devices)  # True if there are Alexa devices linked
+
+    return RoomAlexaStatusResponse(
+        room_id=db_room.id,
+        alexa_connected=alexa_connected
+    )
